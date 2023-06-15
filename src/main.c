@@ -29,8 +29,8 @@ uint32_t millis, last,last1;
 
 #define LED_PIN1 1				// LED1
 SBIT(LED1, 0x90, LED_PIN1);
-#define LED_PIN2 7				// LED2
-SBIT(LED2, 0x90, LED_PIN2);
+#define LED_PIN2 0				// LED2
+SBIT(LED2, 0xB0, LED_PIN2);     // B0 - P3
 
 SBIT(Ep2InKey, 0xB0, 2);
 
@@ -693,7 +693,7 @@ main()
 	b=0;
     while(1)
     {
-    LED2 = capslock;
+    LED2 = !capslock;
     
 	if (millis-last>25000){
 		 LED1 = !LED1;
