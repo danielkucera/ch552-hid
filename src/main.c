@@ -45,7 +45,7 @@ PUINT8  pDescr;
 USB_SETUP_REQ   SetupReqBuf;    
 
 
-uint8_t a,b,numlock,capslock;
+uint8_t a,b,numlock,capslock,suspend;
 
 void jump_to_bootloader()
 {
@@ -548,6 +548,9 @@ void DeviceInterrupt(void) __interrupt (INT_NO_USB)
         UIF_SUSPEND = 0;
         if ( USB_MIS_ST & bUMS_SUSPEND )                                 //?
         {
+            suspend = 1;
+        } else {
+            suspend = 0;
         }
     }
     else {                                                               //ÒâÍâµÄÖÐ¶Ï,²»¿ÉÄÜ·¢ÉúµÄÇé¿ö
@@ -566,6 +569,14 @@ static void CommitKey(){
 	while(FLAG == 0);                                           						
 	Enp1IntIn();			
 	while(FLAG == 0); 
+}
+
+static void CommitMouse(){
+    //mDelaymS( 10 );																			
+	//while(FLAG == 0);                   								
+	Enp2IntIn();						
+	//while(FLAG == 0);
+
 }
 
 static void SendKey ( char *p )
@@ -691,36 +702,49 @@ main()
     FLAG = 0;
     Ready = 0;
 	b=0;
-    while(1)
-    {
-    LED2 = !capslock;
-    
-	if (millis-last>25000){
-		 LED1 = !LED1;
-		 last=millis;         
 
-		 if( Touch_IN != 0 )
-			{
-			//if( Touch_IN & CH2 )jump_to_bootloader();
-			//if( Touch_IN & CH3 )b=1;
-			Touch_IN = 0;
-			}
-	
-	
-        if(Ready)
-        {
-            //SendKey("a");
-            //HIDValueHandle();
+    HIDMouse[0] = 0;
+    HIDMouse[1] = 0;
+    HIDMouse[2] = 0;
 
-            HIDKey[0] = 0;
-            HIDKey[2] = CAPSLOCK;
-            CommitKey();
+    while(1){
 
-            HIDKey[0] = 0;
-            HIDKey[2] = CAPSLOCK;
-            CommitKey();
-        }           
-	}                                   
+        //LED2 = !capslock;
+        LED2 = !(suspend || capslock);
+        
+        if (millis-last>25000){
+            LED1 = !LED1;
+            last=millis;         
+
+            if( Touch_IN != 0 )
+                {
+                //if( Touch_IN & CH2 )jump_to_bootloader();
+                //if( Touch_IN & CH3 )b=1;
+                Touch_IN = 0;
+                }
+        
+        
+            if(Ready)
+            {
+                //SendKey("a");
+                //HIDValueHandle();
+
+/*
+                HIDKey[0] = 0;
+                HIDKey[2] = CAPSLOCK;
+                CommitKey();
+
+                HIDKey[0] = 0;
+                HIDKey[2] = CAPSLOCK;
+                CommitKey();
+*/
+
+                if (!suspend){
+                    HIDMouse[2] = 1;
+                    CommitMouse();
+                }
+            }           
+        }                                   
     }              
        
 }
